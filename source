@@ -135,26 +135,7 @@ local Themes = {
         TextDim     = Color3.fromRGB(185, 185, 200),
         White       = Color3.new(1, 1, 1),
     },
-    -- 3. Light (white bg + near-black accent)
-    Light = {
-        BG          = Color3.fromRGB(242, 244, 248),
-        Surface     = Color3.fromRGB(255, 255, 255),
-        SurfaceAlt  = Color3.fromRGB(224, 227, 236),
-        Border      = Color3.fromRGB(14,  14,  20),
-        BorderDim   = Color3.fromRGB(140, 143, 160),
-        Accent      = Color3.fromRGB(14,  14,  20),
-        AccentBright= Color3.fromRGB(30,  30,  40),
-        AccentDim   = Color3.fromRGB(200, 202, 215),
-        Success     = Color3.fromRGB(30,  160,  90),
-        Warning     = Color3.fromRGB(200, 130,  20),
-        Danger      = Color3.fromRGB(210,  45,  45),
-        TextPrimary = Color3.fromRGB(10,  10,  14),
-        TextSecondary=Color3.fromRGB(30,  32,  45),
-        TextMuted   = Color3.fromRGB(70,  72,  90),
-        TextDim     = Color3.fromRGB(30,  32,  45),
-        White       = Color3.new(1, 1, 1),
-    },
-    -- 4. Orange (near-black + orange accent)
+    -- 3. Orange (near-black + orange accent)
     Orange = {
         BG          = Color3.fromRGB(8,   5,   2),
         Surface     = Color3.fromRGB(13,   8,   3),
@@ -922,12 +903,17 @@ function Library:CreateWindow(config)
         end
 
         -- Theme cards (2x2 grid)
-        local themeNames = { "Cynnet", "Dark", "Light", "Orange" }
+        local themeNames = { "Cynnet", "Dark", "Orange" }
 
         local themeColors = {
             Cynnet = Color3.fromRGB(110,0,255),
             Dark   = Color3.fromRGB(255,255,255),
-            Light  = Color3.fromRGB(14,14,20),
+            Orange = Color3.fromRGB(255,130,0),
+        }
+        -- Badge bg color per theme (separate from dot - Dark badge is near-black not white)
+        local themeBadgeBG = {
+            Cynnet = Color3.fromRGB(110,0,255),
+            Dark   = Color3.fromRGB(30,30,35),
             Orange = Color3.fromRGB(255,130,0),
         }
         local activeThemeName = "Cynnet"
@@ -951,27 +937,23 @@ function Library:CreateWindow(config)
         local cardPreviewBG = {
             Cynnet = Themes.Cynnet.SurfaceAlt,
             Dark   = Themes.Dark.SurfaceAlt,
-            Light  = Themes.Light.Surface,
             Orange = Themes.Orange.SurfaceAlt,
         }
         local cardPreviewText = {
             Cynnet = Themes.Cynnet.TextPrimary,
             Dark   = Themes.Dark.TextPrimary,
-            Light  = Themes.Light.TextPrimary,
             Orange = Themes.Orange.TextPrimary,
         }
         -- Badge text: contrast against each theme's accent
         local cardBadgeText = {
-            Cynnet = Themes.Cynnet.BG,    -- dark bg on purple badge
-            Dark   = Themes.Dark.BG,      -- dark bg on white badge
-            Light  = Themes.Light.White,  -- white text on near-black badge
-            Orange = Themes.Orange.BG,    -- dark bg on orange badge
+            Cynnet = Themes.Cynnet.White,   -- white text on purple badge
+            Dark   = Themes.Dark.TextPrimary, -- white text on dark badge
+            Orange = Themes.Orange.BG,      -- dark text on orange badge
         }
         -- Inactive outline: each card's own border color
         local cardInactiveOutline = {
             Cynnet = Themes.Cynnet.BorderDim,
             Dark   = Themes.Dark.BorderDim,
-            Light  = Themes.Light.Border,
             Orange = Themes.Orange.BorderDim,
         }
 
@@ -1022,7 +1004,7 @@ function Library:CreateWindow(config)
             local activeBadge = Frame({
                 Size = UDim2.new(0,0,0,16), AutomaticSize = Enum.AutomaticSize.X,
                 Position = UDim2.new(1,-4,0,6), AnchorPoint = Vector2.new(1,0),
-                BackgroundColor3 = accentCol, Parent = card,
+                BackgroundColor3 = (themeBadgeBG[tn] or accentCol), Parent = card,
             })
             Round(activeBadge,8); Pad(activeBadge,0,0,7,7)
             local badgeLbl = Instance.new("TextLabel")
