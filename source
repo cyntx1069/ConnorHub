@@ -187,23 +187,29 @@ local function RegisterTheme(instance, property, themeKey)
     table.insert(ThemeRegistry, { inst = instance, prop = property, key = themeKey })
 end
 
+-- Forward-declared so ApplyTheme can call it; assigned inside CreateWindow
+local _onThemeApplied = nil
+
 local function ApplyTheme(themeName)
     local theme = Themes[themeName]
     if not theme then return end
-    -- Update T
+    -- Update T immediately so all future creates use new colors
     for k, v in pairs(theme) do T[k] = v end
-    -- Tween all registered elements
-    local info = TweenInfo.new(0.30, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-    for _, entry in ipairs(ThemeRegistry) do
-        local ok, _ = pcall(function()
+    -- Instantly apply to every registered element (no tweens = no desync)
+    -- Iterate backwards so dead entries can be safely removed
+    for i = #ThemeRegistry, 1, -1 do
+        local entry = ThemeRegistry[i]
+        local ok = pcall(function()
             if entry.inst and entry.inst.Parent then
-                local goal = {}
-                goal[entry.prop] = T[entry.key]
-                TweenService:Create(entry.inst, info, goal):Play()
+                entry.inst[entry.prop] = T[entry.key]
             end
         end)
+        if not ok then table.remove(ThemeRegistry, i) end
     end
+    -- Notify window to re-stamp tab button colours (managed outside registry)
+    if _onThemeApplied then _onThemeApplied() end
 end
+
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 --  TWEEN PRESETS
@@ -484,8 +490,26 @@ function Library:CreateWindow(config)
     CloseBtn.MouseEnter:Connect(function() Tw(CloseBtn,{BackgroundColor3=T.Danger,TextColor3=T.White}) end)
     CloseBtn.MouseLeave:Connect(function() Tw(CloseBtn,{BackgroundColor3=T.SurfaceAlt,TextColor3=T.TextSecondary}) end)
     CloseBtn.MouseButton1Click:Connect(function()
+        -- Animate out
         Tw(Win,{Size=UDim2.new(0,WinSize.X,0,0),BackgroundTransparency=1},TI.Med)
-        task.delay(0.32, function() ScreenGui:Destroy() end)
+        task.delay(0.32, function()
+            -- Destroy main gui
+            pcall(function() ScreenGui:Destroy() end)
+            -- Destroy intro gui if still alive (e.g. user closes during intro)
+            local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+            if playerGui then
+                local introGui = playerGui:FindFirstChild("ConnorHub_Intro")
+                if introGui then introGui:Destroy() end
+            end
+            -- Remove any lingering blur we added to Lighting
+            for _, v in ipairs(Lighting:GetChildren()) do
+                if v:IsA("BlurEffect") and v.Name == "BlurEffect" then
+                    v:Destroy()
+                end
+            end
+            -- Clear theme registry so no stale refs remain
+            table.clear(ThemeRegistry)
+        end)
     end)
 
     local minimised = false
@@ -553,6 +577,28 @@ function Library:CreateWindow(config)
                 Tw(t._page,{Position=UDim2.new(0,0,0,0)},TI.Med)
             end
         end
+    end
+
+    -- Wire up the global hook so ApplyTheme can refresh tab btn colours
+    _onThemeApplied = function()
+        -- Re-stamp every tab button with the new theme's active/inactive colours
+        for _, t in pairs(AllTabs) do
+            local on = (t == ActiveTab)
+            pcall(function()
+                t._btn.BackgroundColor3       = on and T.AccentDim or T.Surface
+                t._btn.BackgroundTransparency = on and 0 or 1
+                t._icon.TextColor3  = on and T.Accent or T.TextDim
+                t._label.TextColor3 = on and T.TextPrimary or T.TextSecondary
+                t._page.BackgroundColor3 = T.BG
+            end)
+        end
+        -- Also re-stamp indicator
+        pcall(function() Indicator.BackgroundColor3 = T.Accent end)
+        -- Re-stamp sidebar and content area backgrounds
+        pcall(function() Sidebar.BackgroundColor3      = T.Surface end)
+        pcall(function() ContentArea.BackgroundColor3  = T.BG end)
+        pcall(function() Win.BackgroundColor3          = T.BG end)
+        pcall(function() TBar.BackgroundColor3         = T.Surface end)
     end
 
     local WindowObj = {}
