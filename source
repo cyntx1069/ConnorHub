@@ -125,14 +125,14 @@ local Themes = {
         BorderDim   = Color3.fromRGB(35,  35,  44),
         Accent      = Color3.fromRGB(255, 255, 255),
         AccentBright= Color3.fromRGB(255, 255, 255),
-        AccentDim   = Color3.fromRGB(50,  50,  60),
+        AccentDim   = Color3.fromRGB(18,  18,  22),
         Success     = Color3.fromRGB(80,  220, 140),
         Warning     = Color3.fromRGB(255, 185,  55),
         Danger      = Color3.fromRGB(255,  65,  65),
-        TextPrimary = Color3.fromRGB(240, 240, 248),
-        TextSecondary=Color3.fromRGB(175, 175, 192),
-        TextMuted   = Color3.fromRGB(105, 105, 120),
-        TextDim     = Color3.fromRGB(60,   60,  72),
+        TextPrimary = Color3.fromRGB(255, 255, 255),
+        TextSecondary=Color3.fromRGB(210, 210, 218),
+        TextMuted   = Color3.fromRGB(150, 150, 165),
+        TextDim     = Color3.fromRGB(185, 185, 200),
         White       = Color3.new(1, 1, 1),
     },
     -- 3. Light (white bg + near-black accent)
@@ -140,37 +140,37 @@ local Themes = {
         BG          = Color3.fromRGB(242, 244, 248),
         Surface     = Color3.fromRGB(255, 255, 255),
         SurfaceAlt  = Color3.fromRGB(232, 235, 242),
-        Border      = Color3.fromRGB(200, 205, 220),
-        BorderDim   = Color3.fromRGB(215, 218, 228),
+        Border      = Color3.fromRGB(14,  14,  20),
+        BorderDim   = Color3.fromRGB(80,  82,  95),
         Accent      = Color3.fromRGB(14,  14,  20),
         AccentBright= Color3.fromRGB(30,  30,  40),
-        AccentDim   = Color3.fromRGB(210, 212, 220),
+        AccentDim   = Color3.fromRGB(200, 202, 215),
         Success     = Color3.fromRGB(30,  160,  90),
         Warning     = Color3.fromRGB(200, 130,  20),
         Danger      = Color3.fromRGB(210,  45,  45),
-        TextPrimary = Color3.fromRGB(20,   22,  35),
-        TextSecondary=Color3.fromRGB(60,   65,  90),
-        TextMuted   = Color3.fromRGB(120, 125, 150),
-        TextDim     = Color3.fromRGB(175, 180, 200),
+        TextPrimary = Color3.fromRGB(10,  10,  14),
+        TextSecondary=Color3.fromRGB(30,  32,  45),
+        TextMuted   = Color3.fromRGB(70,  72,  90),
+        TextDim     = Color3.fromRGB(30,  32,  45),
         White       = Color3.new(1, 1, 1),
     },
     -- 4. Orange (near-black + orange accent)
     Orange = {
         BG          = Color3.fromRGB(8,   5,   2),
         Surface     = Color3.fromRGB(13,   8,   3),
-        SurfaceAlt  = Color3.fromRGB(20,  12,   4),
-        Border      = Color3.fromRGB(90,  50,   0),
-        BorderDim   = Color3.fromRGB(55,  30,   0),
+        SurfaceAlt  = Color3.fromRGB(22,  13,   4),
+        Border      = Color3.fromRGB(100, 55,   0),
+        BorderDim   = Color3.fromRGB(60,  34,   0),
         Accent      = Color3.fromRGB(255, 130,   0),
         AccentBright= Color3.fromRGB(255, 165,  50),
-        AccentDim   = Color3.fromRGB(100,  50,   0),
+        AccentDim   = Color3.fromRGB(70,  36,   0),
         Success     = Color3.fromRGB(80,  220, 140),
         Warning     = Color3.fromRGB(255, 210,  60),
         Danger      = Color3.fromRGB(255,  65,  65),
-        TextPrimary = Color3.fromRGB(255, 245, 230),
-        TextSecondary=Color3.fromRGB(220, 195, 165),
-        TextMuted   = Color3.fromRGB(155, 120,  80),
-        TextDim     = Color3.fromRGB(90,   65,  35),
+        TextPrimary = Color3.fromRGB(255, 248, 235),
+        TextSecondary=Color3.fromRGB(240, 215, 180),
+        TextMuted   = Color3.fromRGB(175, 135,  90),
+        TextDim     = Color3.fromRGB(195, 155, 105),
         White       = Color3.new(1, 1, 1),
     },
 }
@@ -237,7 +237,14 @@ end
 
 local function Stroke(p, col, thick)
     local s = Instance.new("UIStroke")
-    s.Color = col or T.Border; s.Thickness = thick or 1; s.Parent = p; return s
+    s.Color = col or T.Border; s.Thickness = thick or 1; s.Parent = p
+    -- Auto-register strokes that use Border or BorderDim so they update on theme change
+    if col == nil or col == T.Border then
+        RegisterTheme(s, "Color", "Border")
+    elseif col == T.BorderDim then
+        RegisterTheme(s, "Color", "BorderDim")
+    end
+    return s
 end
 
 local function Pad(p, t, b, l, r)
@@ -302,15 +309,15 @@ local function CreateWatermark(screenGui)
         Parent           = screenGui,
     })
     Round(WM, 8)
-    Stroke(WM, T.Border, 1)
+    local wmBorderStroke = Stroke(WM, T.Border, 1)
     Pad(WM, 0, 0, 12, 12)
     RegisterTheme(WM, "BackgroundColor3", "Surface")
+    RegisterTheme(wmBorderStroke, "Color", "Border")
 
     local wmStripe = Frame({
         Size = UDim2.new(1,0,0,2), BackgroundColor3 = T.Accent, ZIndex = 101, Parent = WM,
     })
     Round(wmStripe, 2)
-    GradientStripe(wmStripe)
     RegisterTheme(wmStripe, "BackgroundColor3", "Accent")
 
     local WMText = Label({
@@ -872,7 +879,7 @@ function Library:CreateWindow(config)
 
         -- Keybind row
         local listening = false
-        local kbRow = Frame({Size=UDim2.new(1,0,0,44),BackgroundColor3=T.SurfaceAlt,Parent=Page})
+        local kbRow = Frame({Size=UDim2.new(1,0,0,38),BackgroundColor3=T.SurfaceAlt,Parent=Page})
         Round(kbRow,8); Stroke(kbRow,T.BorderDim,1); Pad(kbRow,0,0,14,14)
         RegisterTheme(kbRow,"BackgroundColor3","SurfaceAlt")
 
@@ -884,10 +891,10 @@ function Library:CreateWindow(config)
         kbBtn.BackgroundColor3=T.AccentDim; kbBtn.BorderSizePixel=0
         kbBtn.Size=UDim2.new(0,90,0,26); kbBtn.Position=UDim2.new(1,-90,0.5,-13)
         kbBtn.Text=CurrentKey.Name; kbBtn.Parent=kbRow; Round(kbBtn,6)
-        RegisterTheme(kbBtn,"BackgroundColor3","AccentDim"); RegisterTheme(kbBtn,"TextColor3","Accent")
+        local kbStroke = Stroke(kbBtn, T.Accent, 1)
+        RegisterTheme(kbBtn,"BackgroundColor3","AccentDim"); RegisterTheme(kbBtn,"TextColor3","Accent"); RegisterTheme(kbStroke,"Color","Accent")
 
-        local kbHint = Label({Text="Click to change",Font=Enum.Font.Gotham,TextSize=10,TextColor3=T.TextDim,TextXAlignment=Enum.TextXAlignment.Left,Size=UDim2.new(0.55,0,0,14),Position=UDim2.new(0,0,1,-16),Parent=kbRow})
-        RegisterTheme(kbHint,"TextColor3","TextDim")
+        -- (kbHint removed per user request)
 
         kbBtn.MouseButton1Click:Connect(function()
             if listening then return end
@@ -955,17 +962,18 @@ function Library:CreateWindow(config)
                 Parent = themeGrid,
             })
             Round(card, 9)
-            local str = Stroke(card, tn == activeThemeName and T.Accent or T.BorderDim, tn == activeThemeName and 2 or 1)
+            -- Outline color: each theme card always shows its OWN accent color as outline
+            local cardOutlineColor = themeColors[tn]  -- dot color = accent of that theme
+            local str = Stroke(card, tn == activeThemeName and cardOutlineColor or T.BorderDim, tn == activeThemeName and 2 or 1)
             RegisterTheme(card,"BackgroundColor3","SurfaceAlt")
 
             -- Accent dot
-            local dot = Frame({ Size=UDim2.new(0,12,0,12), Position=UDim2.new(0,12,0,14), BackgroundColor3=themeColors[tn], Parent=card })
+            local dot = Frame({ Size=UDim2.new(0,12,0,12), Position=UDim2.new(0,12,0.5,-6), AnchorPoint=Vector2.new(0,0.5), BackgroundColor3=themeColors[tn], Parent=card })
             Round(dot,6)
 
-            local tname = Label({ Text=tn, Font=Enum.Font.GothamBold, TextSize=13, TextColor3=T.TextPrimary, TextXAlignment=Enum.TextXAlignment.Left, Size=UDim2.new(1,-14,0,18), Position=UDim2.new(0,12,0,30), Parent=card })
+            local tname = Label({ Text=tn, Font=Enum.Font.GothamBold, TextSize=13, TextColor3=T.TextPrimary, TextXAlignment=Enum.TextXAlignment.Left, Size=UDim2.new(1,-30,1,0), Position=UDim2.new(0,32,0,0), Parent=card })
             RegisterTheme(tname,"TextColor3","TextPrimary")
-            local tdesc = Label({ Text=themeDescriptions[tn], Font=Enum.Font.Gotham, TextSize=10, TextColor3=T.TextDim, TextXAlignment=Enum.TextXAlignment.Left, Size=UDim2.new(1,-14,0,14), Position=UDim2.new(0,12,1,-18), Parent=card })
-            RegisterTheme(tdesc,"TextColor3","TextDim")
+            -- (description removed per user request)
 
             -- Active badge
             local activeBadge = Frame({ Size=UDim2.new(0,0,0,16), AutomaticSize=Enum.AutomaticSize.X, Position=UDim2.new(1,-4,0,8), AnchorPoint=Vector2.new(1,0), BackgroundColor3=T.Accent, Parent=card })
@@ -990,12 +998,14 @@ function Library:CreateWindow(config)
                 -- Deactivate old
                 local old = themeCardRefs[activeThemeName]
                 if old then
-                    Tw(old.stroke,{Color=T.BorderDim,Thickness=1},TI.Fast)
+                    old.stroke.Color     = T.BorderDim
+                    old.stroke.Thickness = 1
                     old.badge.Visible = false
                 end
                 activeThemeName = tn
                 -- Activate new
-                Tw(str,{Color=themeColors[tn],Thickness=2},TI.Fast)
+                str.Color = cardOutlineColor
+                str.Thickness = 2
                 activeBadge.Visible = true
                 -- Apply theme
                 ApplyTheme(tn)
