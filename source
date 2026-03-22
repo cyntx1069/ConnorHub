@@ -10,7 +10,7 @@
 
   -- Step 1: Load the library via loadstring
   local Library = loadstring(game:HttpGet(
-      "https://raw.githubusercontent.com/YourName/ConnorHub/main/source.lua"
+      "https://raw.githubusercontent.com/cyntx1069/ConnorHub/refs/heads/main/source"
   ))()
 
   -- Step 2: Create a Window
