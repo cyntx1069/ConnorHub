@@ -599,7 +599,7 @@ function Library:CreateWindow(config)
     function WindowObj:CreateTab(cfg)
         cfg = cfg or {}
         local name = cfg.Name or "Tab"
-        local icon = cfg.Icon or "•"
+        local icon = cfg.Icon or "*"
 
         local Btn = Instance.new("TextButton")
         Btn.Size=UDim2.new(1,0,0,34); Btn.BackgroundColor3=T.AccentDim
@@ -656,7 +656,7 @@ function Library:CreateWindow(config)
             Label({Text=cfg.Name or "Label",Font=Enum.Font.Gotham,TextSize=12,
                 TextColor3=T.TextSecondary,TextXAlignment=Enum.TextXAlignment.Left,
                 Size=UDim2.new(0.55,0,1,0),Parent=row})
-            local vl=Label({Text=tostring(cfg.Value or "—"),Font=Enum.Font.Code,TextSize=12,
+            local vl=Label({Text=tostring(cfg.Value or "--"),Font=Enum.Font.Code,TextSize=12,
                 TextColor3=cfg.Color or T.Accent,TextXAlignment=Enum.TextXAlignment.Right,
                 Size=UDim2.new(0.45,0,1,0),Position=UDim2.new(0.55,0,0,0),Parent=row})
             return {Set=function(v) vl.Text=tostring(v) end, SetColor=function(c) vl.TextColor3=c end}
@@ -789,7 +789,7 @@ function Library:CreateWindow(config)
             local selLbl=Label({Text=tostring(sel),Font=Enum.Font.GothamBold,TextSize=12,
                 TextColor3=T.TextPrimary,TextXAlignment=Enum.TextXAlignment.Right,
                 Size=UDim2.new(0.45,0,1,0),Position=UDim2.new(0.5,0,0,0),ZIndex=5,Parent=wrap})
-            local arrow=Label({Text="▾",Font=Enum.Font.GothamBold,TextSize=12,TextColor3=T.Accent,
+            local arrow=Label({Text="v",Font=Enum.Font.GothamBold,TextSize=12,TextColor3=T.Accent,
                 Size=UDim2.new(0,16,1,0),Position=UDim2.new(1,-16,0,0),ZIndex=5,Parent=wrap})
             local menu=Frame({Size=UDim2.new(1,0,0,0),Position=UDim2.new(0,0,1,4),
                 BackgroundColor3=T.Surface,ClipsDescendants=true,ZIndex=20,Visible=false,Parent=wrap})
@@ -832,7 +832,7 @@ function Library:CreateWindow(config)
                 TextColor3=T.TextMuted,TextXAlignment=Enum.TextXAlignment.Left,
                 Size=UDim2.new(1,0,0,16),Parent=wrap})
             local box=Instance.new("TextBox")
-            box.Text=tostring(cfg.Default or ""); box.PlaceholderText=cfg.Placeholder or "Type here…"
+            box.Text=tostring(cfg.Default or ""); box.PlaceholderText=cfg.Placeholder or "Type here..."
             box.PlaceholderColor3=T.TextDim; box.Font=Enum.Font.Gotham; box.TextSize=12
             box.TextColor3=T.TextPrimary; box.BackgroundColor3=T.BG; box.BorderSizePixel=0
             box.Size=UDim2.new(1,0,0,24); box.Position=UDim2.new(0,0,1,-24)
