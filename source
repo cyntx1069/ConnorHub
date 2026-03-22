@@ -111,9 +111,9 @@ local Themes = {
         Warning     = Color3.fromRGB(255, 185,  55),
         Danger      = Color3.fromRGB(255,  65,  65),
         TextPrimary = Color3.fromRGB(248, 244, 255),
-        TextSecondary=Color3.fromRGB(210, 195, 240),
+        TextSecondary=Color3.fromRGB(225, 215, 248),
         TextMuted   = Color3.fromRGB(140, 110, 185),
-        TextDim     = Color3.fromRGB(85,   60, 125),
+        TextDim     = Color3.fromRGB(175, 155, 215),
         White       = Color3.new(1, 1, 1),
     },
     -- 2. Dark (near-black + white accent)
@@ -887,7 +887,7 @@ function Library:CreateWindow(config)
         RegisterTheme(kbTitle,"TextColor3","TextPrimary")
 
         local kbBtn = Instance.new("TextButton")
-        kbBtn.Font=Enum.Font.GothamBold; kbBtn.TextSize=11; kbBtn.TextColor3=T.Accent
+        kbBtn.Font=Enum.Font.Gotham; kbBtn.TextSize=12; kbBtn.TextColor3=T.Accent
         kbBtn.BackgroundColor3=T.AccentDim; kbBtn.BorderSizePixel=0
         kbBtn.Size=UDim2.new(0,90,0,26); kbBtn.Position=UDim2.new(1,-90,0.5,-13)
         kbBtn.Text=CurrentKey.Name; kbBtn.Parent=kbRow; Round(kbBtn,6)
@@ -924,12 +924,7 @@ function Library:CreateWindow(config)
 
         -- Theme cards (2x2 grid)
         local themeNames = { "Cynnet", "Dark", "Light", "Orange" }
-        local themeDescriptions = {
-            Cynnet = "Near-black  +  purple",
-            Dark   = "Charcoal  +  cyan",
-            Light  = "White  +  blue",
-            Orange = "Near-black  +  orange",
-        }
+
         local themeColors = {
             Cynnet = Color3.fromRGB(110,0,255),
             Dark   = Color3.fromRGB(255,255,255),
@@ -953,61 +948,128 @@ function Library:CreateWindow(config)
             themeGrid.Size = UDim2.new(1,0,0,tgl.AbsoluteContentSize.Y)
         end)
 
+        -- Each card uses FIXED colors from its own theme so previews never change
+        local cardPreviewBG = {
+            Cynnet = Themes.Cynnet.SurfaceAlt,
+            Dark   = Themes.Dark.SurfaceAlt,
+            Light  = Themes.Light.Surface,
+            Orange = Themes.Orange.SurfaceAlt,
+        }
+        local cardPreviewText = {
+            Cynnet = Themes.Cynnet.TextPrimary,
+            Dark   = Themes.Dark.TextPrimary,
+            Light  = Themes.Light.TextPrimary,
+            Orange = Themes.Orange.TextPrimary,
+        }
+        -- Badge text: contrast against each theme's accent
+        local cardBadgeText = {
+            Cynnet = Themes.Cynnet.BG,    -- dark bg on purple badge
+            Dark   = Themes.Dark.BG,      -- dark bg on white badge
+            Light  = Themes.Light.White,  -- white text on near-black badge
+            Orange = Themes.Orange.BG,    -- dark bg on orange badge
+        }
+        -- Inactive outline: each card's own border color
+        local cardInactiveOutline = {
+            Cynnet = Themes.Cynnet.BorderDim,
+            Dark   = Themes.Dark.BorderDim,
+            Light  = Themes.Light.Border,
+            Orange = Themes.Orange.BorderDim,
+        }
+
         local themeCardRefs = {}
 
         for _, tn in ipairs(themeNames) do
+            local cardBG     = cardPreviewBG[tn]
+            local cardText   = cardPreviewText[tn]
+            local accentCol  = themeColors[tn]
+            local inactiveOutline = cardInactiveOutline[tn]
+            local isActive   = (tn == activeThemeName)
+
             local card = Frame({
-                BackgroundColor3 = T.SurfaceAlt,
-                Size = UDim2.new(1,0,0,64),
+                BackgroundColor3 = cardBG,
+                Size = UDim2.new(1,0,0,58),
                 Parent = themeGrid,
             })
             Round(card, 9)
-            -- Outline color: each theme card always shows its OWN accent color as outline
-            local cardOutlineColor = themeColors[tn]  -- dot color = accent of that theme
-            local str = Stroke(card, tn == activeThemeName and cardOutlineColor or T.BorderDim, tn == activeThemeName and 2 or 1)
-            RegisterTheme(card,"BackgroundColor3","SurfaceAlt")
+            -- Stroke: active = accent color thick, inactive = card's own border
+            local str = Instance.new("UIStroke")
+            str.Color     = isActive and accentCol or inactiveOutline
+            str.Thickness = isActive and 2 or 1
+            str.Parent    = card
 
             -- Accent dot
-            local dot = Frame({ Size=UDim2.new(0,12,0,12), Position=UDim2.new(0,12,0.5,-6), AnchorPoint=Vector2.new(0,0.5), BackgroundColor3=themeColors[tn], Parent=card })
+            local dot = Frame({
+                Size = UDim2.new(0,12,0,12),
+                Position = UDim2.new(0,12,0.5,-6),
+                AnchorPoint = Vector2.new(0,0.5),
+                BackgroundColor3 = accentCol,
+                Parent = card,
+            })
             Round(dot,6)
 
-            local tname = Label({ Text=tn, Font=Enum.Font.GothamBold, TextSize=13, TextColor3=T.TextPrimary, TextXAlignment=Enum.TextXAlignment.Left, Size=UDim2.new(1,-30,1,0), Position=UDim2.new(0,32,0,0), Parent=card })
-            RegisterTheme(tname,"TextColor3","TextPrimary")
-            -- (description removed per user request)
+            -- Theme name
+            local tname = Instance.new("TextLabel")
+            tname.Text = tn
+            tname.Font = Enum.Font.GothamBold
+            tname.TextSize = 13
+            tname.TextColor3 = cardText
+            tname.BackgroundTransparency = 1
+            tname.TextXAlignment = Enum.TextXAlignment.Left
+            tname.Size = UDim2.new(1,-30,1,0)
+            tname.Position = UDim2.new(0,32,0,0)
+            tname.Parent = card
 
-            -- Active badge
-            local activeBadge = Frame({ Size=UDim2.new(0,0,0,16), AutomaticSize=Enum.AutomaticSize.X, Position=UDim2.new(1,-4,0,8), AnchorPoint=Vector2.new(1,0), BackgroundColor3=T.Accent, Parent=card })
+            -- Active badge (uses the card's own accent + contrasting text)
+            local activeBadge = Frame({
+                Size = UDim2.new(0,0,0,16), AutomaticSize = Enum.AutomaticSize.X,
+                Position = UDim2.new(1,-4,0,6), AnchorPoint = Vector2.new(1,0),
+                BackgroundColor3 = accentCol, Parent = card,
+            })
             Round(activeBadge,8); Pad(activeBadge,0,0,7,7)
-            Label({ Text="active", Font=Enum.Font.GothamBold, TextSize=9, TextColor3=T.White, Size=UDim2.new(1,0,1,0), Parent=activeBadge })
-            activeBadge.Visible = (tn == activeThemeName)
-            RegisterTheme(activeBadge,"BackgroundColor3","Accent")
+            local badgeLbl = Instance.new("TextLabel")
+            badgeLbl.Text = "active"
+            badgeLbl.Font = Enum.Font.GothamBold
+            badgeLbl.TextSize = 9
+            badgeLbl.TextColor3 = cardBadgeText[tn]
+            badgeLbl.BackgroundTransparency = 1
+            badgeLbl.Size = UDim2.new(1,0,1,0)
+            badgeLbl.Parent = activeBadge
+            activeBadge.Visible = isActive
 
-            themeCardRefs[tn] = { card=card, stroke=str, badge=activeBadge }
+            themeCardRefs[tn] = { card=card, stroke=str, badge=activeBadge, bg=cardBG, text=cardText }
 
-            local clickBtn = Instance.new("TextButton"); clickBtn.Size=UDim2.new(1,0,1,0); clickBtn.Text=""
-            clickBtn.BackgroundTransparency=1; clickBtn.ZIndex=5; clickBtn.Parent=card
+            local clickBtn = Instance.new("TextButton")
+            clickBtn.Size = UDim2.new(1,0,1,0); clickBtn.Text = ""
+            clickBtn.BackgroundTransparency = 1; clickBtn.ZIndex = 5; clickBtn.Parent = card
 
             clickBtn.MouseEnter:Connect(function()
-                if tn ~= activeThemeName then Tw(card,{BackgroundColor3=T.Surface},TI.Fast) end
+                if tn ~= activeThemeName then
+                    -- Slightly lighten/darken the card on hover
+                    local bg = cardBG
+                    local r = math.min(bg.R + 0.06, 1)
+                    local g = math.min(bg.G + 0.06, 1)
+                    local b2 = math.min(bg.B + 0.06, 1)
+                    Tw(card, {BackgroundColor3 = Color3.new(r,g,b2)}, TI.Fast)
+                end
             end)
             clickBtn.MouseLeave:Connect(function()
-                if tn ~= activeThemeName then Tw(card,{BackgroundColor3=T.SurfaceAlt},TI.Fast) end
+                if tn ~= activeThemeName then Tw(card, {BackgroundColor3 = cardBG}, TI.Fast) end
             end)
             clickBtn.MouseButton1Click:Connect(function()
                 if tn == activeThemeName then return end
-                -- Deactivate old
+                -- Deactivate old card
                 local old = themeCardRefs[activeThemeName]
                 if old then
-                    old.stroke.Color     = T.BorderDim
+                    old.stroke.Color     = cardInactiveOutline[activeThemeName]
                     old.stroke.Thickness = 1
-                    old.badge.Visible = false
+                    old.badge.Visible    = false
                 end
                 activeThemeName = tn
-                -- Activate new
-                str.Color = cardOutlineColor
+                -- Activate this card
+                str.Color     = accentCol
                 str.Thickness = 2
                 activeBadge.Visible = true
-                -- Apply theme
+                -- Apply theme to everything else
                 ApplyTheme(tn)
             end)
         end
