@@ -139,9 +139,9 @@ local Themes = {
     Light = {
         BG          = Color3.fromRGB(242, 244, 248),
         Surface     = Color3.fromRGB(255, 255, 255),
-        SurfaceAlt  = Color3.fromRGB(232, 235, 242),
+        SurfaceAlt  = Color3.fromRGB(224, 227, 236),
         Border      = Color3.fromRGB(14,  14,  20),
-        BorderDim   = Color3.fromRGB(80,  82,  95),
+        BorderDim   = Color3.fromRGB(140, 143, 160),
         Accent      = Color3.fromRGB(14,  14,  20),
         AccentBright= Color3.fromRGB(30,  30,  40),
         AccentDim   = Color3.fromRGB(200, 202, 215),
@@ -887,11 +887,11 @@ function Library:CreateWindow(config)
         RegisterTheme(kbTitle,"TextColor3","TextPrimary")
 
         local kbBtn = Instance.new("TextButton")
-        kbBtn.Font=Enum.Font.Gotham; kbBtn.TextSize=13; kbBtn.TextColor3=T.Accent
+        kbBtn.Font=Enum.Font.GothamMedium; kbBtn.TextSize=13; kbBtn.TextColor3=T.TextPrimary
         kbBtn.BackgroundColor3=T.AccentDim; kbBtn.BorderSizePixel=0
         kbBtn.Size=UDim2.new(0,110,0,28); kbBtn.Position=UDim2.new(1,-110,0.5,-14)
         kbBtn.Text=CurrentKey.Name; kbBtn.Parent=kbRow; Round(kbBtn,6)
-        RegisterTheme(kbBtn,"BackgroundColor3","AccentDim"); RegisterTheme(kbBtn,"TextColor3","Accent")
+        RegisterTheme(kbBtn,"BackgroundColor3","AccentDim"); RegisterTheme(kbBtn,"TextColor3","TextPrimary")
 
         -- (kbHint removed per user request)
 
@@ -906,7 +906,7 @@ function Library:CreateWindow(config)
                 if inp.UserInputType == Enum.UserInputType.Keyboard then
                     CurrentKey = inp.KeyCode
                     kbBtn.Text = CurrentKey.Name
-                    Tw(kbBtn,{BackgroundColor3=T.AccentDim,TextColor3=T.Accent},TI.Fast)
+                    Tw(kbBtn,{BackgroundColor3=T.AccentDim,TextColor3=T.TextPrimary},TI.Fast)
                     listening = false
                     conn:Disconnect()
                 end
@@ -926,8 +926,8 @@ function Library:CreateWindow(config)
 
         local themeColors = {
             Cynnet = Color3.fromRGB(110,0,255),
-            Dark   = Color3.fromRGB(14,14,20),
-            Light  = Color3.fromRGB(255,255,255),
+            Dark   = Color3.fromRGB(255,255,255),
+            Light  = Color3.fromRGB(14,14,20),
             Orange = Color3.fromRGB(255,130,0),
         }
         local activeThemeName = "Cynnet"
